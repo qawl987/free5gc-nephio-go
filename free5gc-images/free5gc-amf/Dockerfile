@@ -1,4 +1,4 @@
-ARG VERSION=3.2.1
+ARG VERSION=4.1.0
 ARG REGISTRY=docker.io/nephio
 ARG BASE_IMAGE=alpine
 
@@ -8,15 +8,14 @@ FROM $BASE_IMAGE
 ENV GIN_MODE="release"
 
 WORKDIR /free5gc
-RUN mkdir --parents ./log/ ./config/ ./TLS/ ./amf/
+RUN mkdir --parents ./log/ ./config/ ./cert/
 
 # Copy executable and default certs/configs
-COPY --from=builder /free5gc/amf ./amf
-COPY --from=builder /free5gc/config/TLS/amf.pem ./config/TLS/
-COPY --from=builder /free5gc/config/TLS/amf.key ./config/TLS/
+COPY --from=builder /free5gc/amf ./
 COPY --from=builder /free5gc/config/amfcfg.yaml ./config/
+COPY --from=builder /free5gc/cert/* ./cert/
 
 VOLUME [ "/free5gc/config" ]
-#VOLUME [ "/free5gc/config/TLS" ]
+VOLUME [ "/free5gc/cert" ]
 
-WORKDIR /free5gc/amf
+

@@ -26,7 +26,7 @@ import (
 const configurationTemplateSource = `
 info:
 
-  version: 1.0.2
+  version: 1.0.7
   description: SMF configuration
 
 configuration:
@@ -42,12 +42,18 @@ configuration:
     bindingIPv4: 0.0.0.0
     port: 80
     tls:
-      key: config/TLS/smf.key
-      pem: config/TLS/smf.pem
+      key: cert/smf.key
+      pem: cert/smf.pem
 
   nrfUri: http://nrf-nnrf:8000
+  nrfCertPem: cert/nrf.pem
   pfcp:
-    addr: {{ .PFCP_IP }}
+    nodeID: 127.0.0.1
+    listenAddr: 127.0.0.1
+    externalAddr: 127.0.0.1
+    associateFailAlertInterval: 10s
+    associateFailRetryInterval: 30s
+    heartbeatInterval: 10s
   smfName: SMF
 
   snssaiInfos:
@@ -55,9 +61,10 @@ configuration:
       sst: 1
       sd: 010203
     dnnInfos:
-    - dnn: internet 
+    - dnn: internet
       dns:
-        ipv4: 8.8.8.8 
+        ipv4: 8.8.8.8
+        ipv6: 2001:4860:4860::8888
   - sNssai:
       sst: 1
       sd: 112233
@@ -65,13 +72,7 @@ configuration:
     - dnn: internet
       dns:
         ipv4: 8.8.8.8
-  - sNssai:
-      sst: 2
-      sd: 112234
-    dnnInfos:
-    - dnn: internet
-      dns:
-        ipv4: 8.8.8.8
+        ipv6: 2001:4860:4860::8888
   plmnList:
   - mcc: "208"
     mnc: "93"
@@ -83,6 +84,7 @@ configuration:
       {{ $upf.Name }}:
         type: UPF
         nodeID: {{ $upf.N4IP }}
+        addr: {{ $upf.N4IP }}
         sNssaiUpfInfos:
         - sNssai:
             sst: 1
@@ -93,13 +95,16 @@ configuration:
             - dnn: {{ $dnn.Name }}
               pools:
               - cidr: {{(index $dnn.Pool 0).Prefix}}
+              staticPools:
+              - cidr: {{(index $dnn.Pool 0).Prefix}}
     {{- end }}
   {{- end }}
         interfaces:
         - interfaceType: N3
           endpoints:
           - {{ $upf.N3IP }}
-          networkInstance: internet
+          networkInstances:
+          - internet
 {{- end}}
     links:
 {{- range $index, $upf := .UPF_LIST }}
@@ -108,29 +113,42 @@ configuration:
 {{- end}}
 
   locality: area1
+  t3591:
+    enable: true # true or false
+    expireTime: 16s # default is 6 seconds
+    maxRetryTimes: 3 # the max number of retransmission
+
+  # retransmission timer for PDU session release command
+  t3592:
+    enable: true # true or false
+    expireTime: 16s # default is 6 seconds
+    maxRetryTimes: 3 # the max number of retransmission
+  urrPeriod: 30 # default usage report period in seconds
+  urrThreshold: 500000 # default usage report threshold in bytes
+  requestedUnit: 1000
+
+  # Metrics configuration
+  # If using the same bindingIPv4 as the sbi server, make sure that the ports are different
+  metrics:
+    enable: false # (Optional, default false)
+    scheme: http # (Required) the protocol for metrics (http or https, default https)
+    bindingIPv4: {{ .SVC_NAME }} # (Required) IP used to bind the metrics endpoint (default 0.0.0.0)
+    port: 9091 # (Optional, default 9091) port used to bind the service
+    tls: # (Optional) the local path of TLS key (Could be the same as the sbi ones)
+      pem: cert/smf.pem # SMF TLS Certificate
+      key: cert/smf.key # SMF TLS Private key
+    namespace: free5gc # (Optional, default free5gc)
 
 logger:
-  Aper:
-    ReportCaller: false
-    debugLevel: info
-  NAS:
-    ReportCaller: false
-    debugLevel: info
-  NGAP:
-    ReportCaller: false
-    debugLevel: info
-  PFCP:
-    ReportCaller: false
-    debugLevel: info
-  SMF:
-    ReportCaller: false
-    debugLevel: debug
+  enable: true # true or false
+  level: info # how detailed to output, value: trace, debug, info, warn, error, fatal, panic
+  reportCaller: false
 `
 
 const ueRoutingConfigurationTemplateSource = `
 info:
 
-  version: 1.0.1
+  version: 1.0.7
   description: Routing information for UE
 
 ueRoutingInfo:
@@ -158,6 +176,17 @@ ueRoutingInfo:
     specificPath:
     - dest: 10.100.100.16/32
       path: [BranchingUPF, AnchorUPF2]
+
+routeProfile: # Maintains the mapping between RouteProfileID and ForwardingPolicyID of UPF
+  MEC1: # Route Profile identifier
+    forwardingPolicyID: 10 # Forwarding Policy ID of the route profile
+
+pfdDataForApp: # PFDs for an Application
+  - applicationId: edge # Application identifier
+    pfds: # PFDs for the Application
+      - pfdID: pfd1 # PFD identifier
+        flowDescriptions: # Represents a 3-tuple with protocol, server ip and server port for UL/DL application traffic
+          - permit out ip from 10.100.100.1 80 to any
 `
 
 var (

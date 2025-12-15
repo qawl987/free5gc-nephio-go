@@ -91,7 +91,7 @@ func TestCreateDeployment(t *testing.T) {
 							},
 
 							Command: []string{"./amf"},
-							Args:    []string{"-c", "../config/amfcfg.yaml"},
+							Args:    []string{"-c", "./config/amfcfg.yaml"},
 
 							VolumeMounts: []apiv1.VolumeMount{
 								{

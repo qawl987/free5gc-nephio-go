@@ -71,7 +71,7 @@ ip route add default via {{$.N6gw}} dev {{index $netInstance.Interfaces 0}} tabl
   {{- end }}
 {{- end }}
 
-/free5gc/upf/upf -c /free5gc/config/upfcfg.yaml
+/free5gc/upf -c /free5gc/config/upfcfg.yaml
 `
 
 var (

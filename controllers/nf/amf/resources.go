@@ -87,7 +87,7 @@ func createDeployment(log logr.Logger, configMapVersion string, amfDeployment *n
 							},
 
 							Command: []string{"./amf"},
-							Args:    []string{"-c", "../config/amfcfg.yaml"},
+							Args:    []string{"-c", "./config/amfcfg.yaml"},
 
 							VolumeMounts: []apiv1.VolumeMount{
 								{
