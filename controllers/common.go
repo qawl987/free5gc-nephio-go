@@ -20,7 +20,7 @@ const (
 	ConfigMapVersionAnnotation = "workload.nephio.org/configMapVersion"
 
 	// TODO(jbelamaric): Update to use ImageConfig spec.ImagePaths["upf"]
-	AMFImage = "free5gc/amf:v4.1.0"
-	SMFImage = "free5gc/smf:v4.1.0"
-	UPFImage = "free5gc/upf:v4.0.1"
+	AMFImage = "docker.io/nephio/free5gc-amf:4.1.0"
+	SMFImage = "docker.io/nephio/free5gc-smf:4.1.0"
+	UPFImage = "docker.io/nephio/free5gc-upf:4.1.0"
 )

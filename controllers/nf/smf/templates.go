@@ -48,9 +48,9 @@ configuration:
   nrfUri: http://nrf-nnrf:8000
   nrfCertPem: cert/nrf.pem
   pfcp:
-    nodeID: 127.0.0.1
-    listenAddr: 127.0.0.1
-    externalAddr: 127.0.0.1
+    nodeID: {{ .PFCP_IP }}
+    listenAddr: {{ .PFCP_IP }}
+    externalAddr: {{ .PFCP_IP }}
     associateFailAlertInterval: 10s
     associateFailRetryInterval: 30s
     heartbeatInterval: 10s
@@ -68,6 +68,14 @@ configuration:
   - sNssai:
       sst: 1
       sd: 112233
+    dnnInfos:
+    - dnn: internet
+      dns:
+        ipv4: 8.8.8.8
+        ipv6: 2001:4860:4860::8888
+  - sNssai:
+      sst: 2
+      sd: 112234
     dnnInfos:
     - dnn: internet
       dns:
@@ -94,8 +102,6 @@ configuration:
     {{- range $dnn := $n6Instances.DataNetworks }}
             - dnn: {{ $dnn.Name }}
               pools:
-              - cidr: {{(index $dnn.Pool 0).Prefix}}
-              staticPools:
               - cidr: {{(index $dnn.Pool 0).Prefix}}
     {{- end }}
   {{- end }}

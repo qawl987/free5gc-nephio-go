@@ -5,8 +5,10 @@ ARG BASE_IMAGE=alpine
 FROM $REGISTRY/free5gc-base:$VERSION AS builder
 
 # GoGTP5G Tunnel for UPF
-RUN git clone https://github.com/free5gc/go-gtp5gnl.git && mkdir "go-gtp5gnl/bin" && \
-    cd "go-gtp5gnl/cmd/gogtp5g-tunnel" &&  go build -o "${GOPATH}/gtp5g-tunnel" . && \
+RUN git clone https://github.com/free5gc/go-gtp5gnl.git && \
+    mkdir "go-gtp5gnl/bin" && \
+    cd "go-gtp5gnl/cmd/gogtp5g-tunnel" && \
+    go build -o "${GOPATH}/gtp5g-tunnel" . && \
     cd -
 
 
