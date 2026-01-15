@@ -105,6 +105,28 @@ configuration:
               - cidr: {{(index $dnn.Pool 0).Prefix}}
     {{- end }}
   {{- end }}
+        - sNssai:
+            sst: 1
+            sd: 112233
+          dnnUpfInfoList:
+  {{- range $n6Instances := $upf.N6Cfg }}
+    {{- range $dnn := $n6Instances.DataNetworks }}
+            - dnn: {{ $dnn.Name }}
+              pools:
+              - cidr: {{(index $dnn.Pool 1).Prefix}}
+    {{- end }}
+  {{- end }}
+        - sNssai:
+            sst: 2
+            sd: 112234
+          dnnUpfInfoList:
+  {{- range $n6Instances := $upf.N6Cfg }}
+    {{- range $dnn := $n6Instances.DataNetworks }}
+            - dnn: {{ $dnn.Name }}
+              pools:
+              - cidr: {{(index $dnn.Pool 2).Prefix}}
+    {{- end }}
+  {{- end }}
         interfaces:
         - interfaceType: N3
           endpoints:
