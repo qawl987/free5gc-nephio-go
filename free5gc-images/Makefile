@@ -40,7 +40,7 @@ build:
 	$(call build,free5gc-udm)
 	$(call build,free5gc-udr)
 	$(call build,free5gc-upf)
-	$(call build,free5gc-webconsole)
+	$(call build,free5gc-webui)
 
 .PHONY: push
 push:
@@ -54,4 +54,4 @@ push:
 	$(call push,free5gc-udm)
 	$(call push,free5gc-udr)
 	$(call push,free5gc-upf)
-	$(call push,free5gc-webconsole)
+	$(call push,free5gc-webui)
