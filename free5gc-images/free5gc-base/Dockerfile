@@ -14,14 +14,14 @@ ENV VERSION=$VERSION
 
 # Note: "golang" builder image is based on Debian
 RUN curl --silent --show-error https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor > /etc/apt/trusted.gpg.d/yarn.gpg
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
+
 RUN apt-get update
 
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt update \
     && apt install nodejs -y
 
-RUN apt-get install --assume-yes yarn
+RUN npm install -g yarn
 
 RUN cd "$GOPATH/src" \
     && git -c advice.detachedHead=false clone --branch "v$VERSION" --recursive --jobs "$(nproc)" https://github.com/free5gc/free5gc.git

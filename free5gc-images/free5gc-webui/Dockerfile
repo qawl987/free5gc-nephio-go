@@ -6,6 +6,8 @@ FROM $REGISTRY/free5gc-base:$VERSION AS builder
 
 FROM $BASE_IMAGE
 
+RUN addgroup -S nonroot && adduser -S nonroot -G nonroot
+
 ENV GIN_MODE="release"
 
 RUN apk --no-cache add libc6-compat
@@ -22,3 +24,4 @@ COPY --from=builder /free5gc/cert/* ./cert/
 VOLUME [ "/free5gc/config" ]
 VOLUME [ "/free5gc/cert" ]
 
+USER nonroot
