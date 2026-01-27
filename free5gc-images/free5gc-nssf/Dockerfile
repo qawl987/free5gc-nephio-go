@@ -1,22 +1,23 @@
-ARG VERSION=3.2.1
+ARG VERSION=4.1.0
 ARG REGISTRY=docker.io/nephio
 ARG BASE_IMAGE=alpine
 
 FROM $REGISTRY/free5gc-base:$VERSION AS builder
 FROM $BASE_IMAGE
 
+LABEL description="Free5GC open source 5G Core Network" \
+    version="Stage 3"
+
 ENV GIN_MODE="release"
 
 WORKDIR /free5gc
-RUN mkdir --parents ./log/ ./config/TLS/ ./nssf/
+RUN mkdir --parents ./log/ ./cert/
 
 # Copy executable and default certs
-COPY --from=builder /free5gc/nssf ./nssf
-COPY --from=builder /free5gc/config/TLS/nssf.pem ./config/TLS/
-COPY --from=builder /free5gc/config/TLS/nssf.key ./config/TLS/
+COPY --from=builder /free5gc/nssf ./
 COPY --from=builder /free5gc/config/nssfcfg.yaml ./config/
+COPY --from=builder /free5gc/cert/* ./cert/
 
 VOLUME [ "/free5gc/config" ]
-#VOLUME [ "/free5gc/config/TLS" ]
+VOLUME [ "/free5gc/cert" ]
 
-WORKDIR /free5gc/nssf

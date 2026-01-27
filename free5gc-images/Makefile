@@ -1,7 +1,7 @@
-FREE5GC_VERSION ?= 3.2.1
+FREE5GC_VERSION ?= 4.1.0
 IMG_REGISTRY ?= docker.io/nephio
 BASE_IMAGE ?= alpine:3.18.0
-BUILDER_IMAGE ?= golang:1.21.6
+BUILDER_IMAGE ?= golang:1.25.5
 
 ifeq ($(NO_CACHE),true)
 	BUILD_ARGS=--no-cache
@@ -40,7 +40,7 @@ build:
 	$(call build,free5gc-udm)
 	$(call build,free5gc-udr)
 	$(call build,free5gc-upf)
-	$(call build,free5gc-webconsole)
+	$(call build,free5gc-webui)
 
 .PHONY: push
 push:
@@ -54,4 +54,4 @@ push:
 	$(call push,free5gc-udm)
 	$(call push,free5gc-udr)
 	$(call push,free5gc-upf)
-	$(call push,free5gc-webconsole)
+	$(call push,free5gc-webui)

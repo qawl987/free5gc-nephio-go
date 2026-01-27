@@ -91,7 +91,7 @@ func createDeployment(log logr.Logger, configMapVersion string, smfDeployment *n
 								},
 							},
 							Command: []string{"./smf"},
-							Args:    []string{"-c", "../config/smfcfg.yaml", "-u", "../config/uerouting.yaml"},
+							Args:    []string{"-c", "./config/smfcfg.yaml", "-u", "./config/uerouting.yaml"},
 							VolumeMounts: []apiv1.VolumeMount{
 								{
 									MountPath: "/free5gc/config/",

@@ -24,13 +24,15 @@ import (
 const configurationTemplateSource = `
 info:
 
-  version: 1.0.3
+  version: 1.0.9
   description: AMF initial local configuration
 
 configuration:
 
   ngapIpList:
     - {{ .N2_IP }}
+  
+  ngapPort: 38412
 
   sbi:
     scheme: http
@@ -38,10 +40,11 @@ configuration:
     bindingIPv4: 0.0.0.0  # IP used to bind the service
     port: 80
     tls:
-      key: config/TLS/amf.key
-      pem: config/TLS/amf.pem
+      key: cert/amf.key
+      pem: cert/amf.pem
 
   nrfUri: http://nrf-nnrf:8000
+  nrfCertPem: cert/nrf.pem
 
   amfName: AMF
 
@@ -62,7 +65,7 @@ configuration:
   - plmnId:
       mcc: 208
       mnc: 93
-    tac: 1
+    tac: 000001
 
   plmnSupportList:
   - plmnId:
@@ -89,16 +92,25 @@ configuration:
 
   locality: area1 # Name of the location where a set of AMF, SMF and UPFs are located
 
-  networkFeatureSupport5GS: # 5gs Network Feature Support IE, refer to TS 24.501
-    enable: true # append this IE in Registration accept or not
-    length: 1 # IE content length (uinteger, range: 1~3)
-    imsVoPS: 0 # IMS voice over PS session indicator (uinteger, range: 0~1)
-    emc: 0 # Emergency service support indicator for 3GPP access (uinteger, range: 0~3)
-    emf: 0 # Emergency service fallback indicator for 3GPP access (uinteger, range: 0~3)
-    iwkN26: 0 # Interworking without N26 interface indicator (uinteger, range: 0~1)
-    mpsi: 0 # MPS indicator (uinteger, range: 0~1)
-    emcN3: 0 # Emergency service support indicator for Non-3GPP access (uinteger, range: 0~1)
-    mcsi: 0 # MCS indicator (uinteger, range: 0~1)
+  ngapIE: # Optional NGAP IEs
+    mobilityRestrictionList: # Mobility Restriction List IE, refer to TS 38.413
+      enable: true # append this IE in related message or not
+    maskedIMEISV: # Masked IMEISV IE, refer to TS 38.413
+      enable: true # append this IE in related message or not
+    redirectionVoiceFallback: # Redirection Voice Fallback IE, refer to TS 38.413
+      enable: false # append this IE in related message or not
+  
+  nasIE: # Optional NAS IEs
+    networkFeatureSupport5GS: # 5gs Network Feature Support IE, refer to TS 24.501
+      enable: true # append this IE in Registration accept or not
+      length: 1 # IE content length (uinteger, range: 1~3)
+      imsVoPS: 0 # IMS voice over PS session indicator (uinteger, range: 0~1)
+      emc: 0 # Emergency service support indicator for 3GPP access (uinteger, range: 0~3)
+      emf: 0 # Emergency service fallback indicator for 3GPP access (uinteger, range: 0~3)
+      iwkN26: 0 # Interworking without N26 interface indicator (uinteger, range: 0~1)
+      mpsi: 0 # MPS indicator (uinteger, range: 0~1)
+      emcN3: 0 # Emergency service support indicator for Non-3GPP access (uinteger, range: 0~1)
+      mcsi: 0 # MCS indicator (uinteger, range: 0~1)
 
   t3502Value: 720
   t3512Value: 3600
@@ -122,6 +134,12 @@ configuration:
     expireTime: 6s   # default is 6 seconds
     maxRetryTimes: 4 # the max number of retransmission
 
+  # retransmission timer for NAS Configuration Update Command message
+  t3555:
+    enable: true     # true or false
+    expireTime: 6s   # default is 6 seconds
+    maxRetryTimes: 4 # the max number of retransmission
+
   # retransmission timer for NAS Authentication Request/Security Mode Command message
   t3560:
     enable: true     # true or false
@@ -139,22 +157,30 @@ configuration:
     expireTime: 6s   # default is 6 seconds
     maxRetryTimes: 4 # the max number of retransmission
 
-logger:
-  AMF:
-    ReportCaller: false
-    debugLevel: info
-  Aper:
-    ReportCaller: false
-    debugLevel: info
-  FSM:
-    ReportCaller: false
-    debugLevel: info
-  NAS:
-    ReportCaller: false
-    debugLevel: info
-  NGAP:
-    ReportCaller: false
-    debugLevel: info
+  sctp: # set the sctp server setting <optinal>, once this field is set, please also add maxInputStream, maxOsStream, maxAttempts, maxInitTimeOut
+    numOstreams: 3 # the maximum out streams of each sctp connection
+    maxInstreams: 5 # the maximum in streams of each sctp connection
+    maxAttempts: 2 # the maximum attempts of each sctp connection
+    maxInitTimeout: 2 # the maximum init timeout of each sctp connection
+  defaultUECtxReq: false # the default value of UE Context Request to decide when triggering Initial Context Setup procedure
+
+  # Metrics configuration
+  # If using the same bindingIPv4 as the sbi server, make sure that the ports are different
+  metrics:
+    enable: false # (Optional, default false)
+    scheme: http # (Required) the protocol for metrics (http or https, default https)
+    bindingIPv4: {{ .N2_IP }} # (Required) IP used to bind the metrics endpoint (default 0.0.0.0)
+    port: 9091 # (Optional, default 9091) port used to bind the service
+    tls: # (Optional) the local path of TLS key (Could be the same as the sbi ones)
+      pem: cert/amf.pem # AMF TLS Certificate
+      key: cert/amf.key # AMF TLS Private key
+    namespace: free5gc # (Optional, default free5gc)
+
+logger: # log output setting
+  enable: true # true or false
+  level: info # how detailed to output, value: trace, debug, info, warn, error, fatal, panic
+  reportCaller: false # enable the caller report or not, value: true or false
+
  `
 
 var configurationTemplate = template.Must(template.New("AMFConfiguration").Parse(configurationTemplateSource))

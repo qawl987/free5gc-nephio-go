@@ -92,7 +92,7 @@ func TestCreateDeployment(t *testing.T) {
 								},
 							},
 							Command: []string{"./smf"},
-							Args:    []string{"-c", "../config/smfcfg.yaml", "-u", "../config/uerouting.yaml"},
+							Args:    []string{"-c", "./config/smfcfg.yaml", "-u", "./config/uerouting.yaml"},
 							VolumeMounts: []apiv1.VolumeMount{
 								{
 									MountPath: "/free5gc/config/",
@@ -211,6 +211,12 @@ func TestCreateConfigMap(t *testing.T) {
 								{
 									Prefix: "100.100.0.0/16",
 								},
+								{
+									Prefix: "100.100.1.0/16",
+								},
+								{
+									Prefix: "100.100.2.0/16",
+								},
 							},
 						},
 					},
@@ -251,6 +257,12 @@ func TestCreateConfigMap(t *testing.T) {
 				Pool: []nephiov1alpha1.Pool{
 					{
 						Prefix: "100.100.0.0/16",
+					},
+					{
+						Prefix: "100.100.1.0/16",
+					},
+					{
+						Prefix: "100.100.2.0/16",
 					},
 				},
 			},
