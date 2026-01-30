@@ -94,37 +94,35 @@ configuration:
         nodeID: {{ $upf.N4IP }}
         addr: {{ $upf.N4IP }}
         sNssaiUpfInfos:
+  {{- range $n6Instances := $upf.N6Cfg }}
+    {{- range $dnn := $n6Instances.DataNetworks }}
+      {{- if ge (len $dnn.Pool) 1 }}
         - sNssai:
             sst: 1
             sd: 010203
           dnnUpfInfoList:
-  {{- range $n6Instances := $upf.N6Cfg }}
-    {{- range $dnn := $n6Instances.DataNetworks }}
             - dnn: {{ $dnn.Name }}
               pools:
               - cidr: {{(index $dnn.Pool 0).Prefix}}
-    {{- end }}
-  {{- end }}
+      {{- end }}
+      {{- if ge (len $dnn.Pool) 2 }}
         - sNssai:
             sst: 1
             sd: 112233
           dnnUpfInfoList:
-  {{- range $n6Instances := $upf.N6Cfg }}
-    {{- range $dnn := $n6Instances.DataNetworks }}
             - dnn: {{ $dnn.Name }}
               pools:
               - cidr: {{(index $dnn.Pool 1).Prefix}}
-    {{- end }}
-  {{- end }}
+      {{- end }}
+      {{- if ge (len $dnn.Pool) 3 }}
         - sNssai:
             sst: 2
             sd: 112234
           dnnUpfInfoList:
-  {{- range $n6Instances := $upf.N6Cfg }}
-    {{- range $dnn := $n6Instances.DataNetworks }}
             - dnn: {{ $dnn.Name }}
               pools:
               - cidr: {{(index $dnn.Pool 2).Prefix}}
+      {{- end }}
     {{- end }}
   {{- end }}
         interfaces:
