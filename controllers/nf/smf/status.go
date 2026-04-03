@@ -25,13 +25,23 @@ import (
 )
 
 func createNfDeploymentStatus(deployment *appsv1.Deployment, smfDeployment *nephiov1alpha1.NFDeployment) (nephiov1alpha1.NFDeploymentStatus, bool) {
-	gen := deployment.Generation
+	// Use NFDeployment's generation, not the underlying Deployment's generation
+	gen := smfDeployment.Generation
 	if gen > math.MaxInt32 {
 		gen = math.MaxInt32
 	}
 	nfDeploymentStatus := nephiov1alpha1.NFDeploymentStatus{
 		ObservedGeneration: int32(gen), // #nosec G115 -- bounded to MaxInt32
 		Conditions:         smfDeployment.Status.Conditions,
+	}
+
+	// Check if Ready condition already exists
+	hasReadyCondition := false
+	for _, c := range smfDeployment.Status.Conditions {
+		if c.Type == "Ready" {
+			hasReadyCondition = true
+			break
+		}
 	}
 
 	if len(smfDeployment.Status.Conditions) == 0 {
@@ -56,6 +66,18 @@ func createNfDeploymentStatus(deployment *appsv1.Deployment, smfDeployment *neph
 		return nfDeploymentStatus, false
 	}
 
+	// If deployment is available but Ready condition is missing, add it
+	if lastDeploymentCondition.Type == appsv1.DeploymentAvailable && !hasReadyCondition {
+		nfDeploymentStatus.Conditions = append(nfDeploymentStatus.Conditions, metav1.Condition{
+			Type:               "Ready",
+			Status:             metav1.ConditionTrue,
+			Reason:             "Reconciled",
+			Message:            "NFDeployment reconciled successfully",
+			LastTransitionTime: metav1.Now(),
+		})
+		return nfDeploymentStatus, true
+	}
+
 	if string(lastDeploymentCondition.Type) == string(lastSmfDeploymentCondition.Type) {
 		return nfDeploymentStatus, false
 	}
@@ -67,6 +89,14 @@ func createNfDeploymentStatus(deployment *appsv1.Deployment, smfDeployment *neph
 			Status:             metav1.ConditionTrue,
 			Reason:             "MinimumReplicasAvailable",
 			Message:            "SMFDeployment pods are available.",
+			LastTransitionTime: metav1.Now(),
+		})
+		// Add Ready condition for ConfigSync compatibility
+		nfDeploymentStatus.Conditions = append(nfDeploymentStatus.Conditions, metav1.Condition{
+			Type:               "Ready",
+			Status:             metav1.ConditionTrue,
+			Reason:             "Reconciled",
+			Message:            "NFDeployment reconciled successfully",
 			LastTransitionTime: metav1.Now(),
 		})
 
