@@ -114,14 +114,23 @@ func TestCreateNfDeploymentStatusAvailable(t *testing.T) {
 	deployment.Status.Conditions = append(deployment.Status.Conditions, *deploymentCondition)
 
 	want := nfDeployment.Status
+	want.Conditions = append(want.Conditions, metav1.Condition{
+		Type:    "Ready",
+		Status:  metav1.ConditionTrue,
+		Reason:  "Reconciled",
+		Message: "NFDeployment reconciled successfully",
+	})
 
 	got, b := createNfDeploymentStatus(deployment, nfDeployment)
+
+	clearTransitionTimes(&got)
+	clearTransitionTimes(&want)
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("createNfDeploymentStatus(%v, %v) returned %v, want %v", deployment, nfDeployment, got, want)
 	}
-	if b {
-		t.Errorf("createNfDeploymentStatus(%v, %v) returned %v, want %v", deployment, nfDeployment, b, false)
+	if !b {
+		t.Errorf("createNfDeploymentStatus(%v, %v) returned %v, want %v", deployment, nfDeployment, b, true)
 	}
 }
 
@@ -146,13 +155,17 @@ func TestCreateNfDeploymentStatusDeploymentAvailable(t *testing.T) {
 	condition.Reason = "MinimumReplicasAvailable"
 	condition.Message = "NFDeployment pods are available."
 	want.Conditions = append(want.Conditions, condition)
+	want.Conditions = append(want.Conditions, metav1.Condition{
+		Type:    "Ready",
+		Status:  metav1.ConditionTrue,
+		Reason:  "Reconciled",
+		Message: "NFDeployment reconciled successfully",
+	})
 
 	got, b := createNfDeploymentStatus(deployment, nfDeployment)
 
-	gotCondition := got.Conditions[1]
-	gotCondition.LastTransitionTime = metav1.Time{}
-	got.Conditions = got.Conditions[:len(got.Conditions)-1]
-	got.Conditions = append(got.Conditions, gotCondition)
+	clearTransitionTimes(&got)
+	clearTransitionTimes(&want)
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("createNfDeploymentStatus(%v, %v) returned %v, want %v", deployment, nfDeployment, got, want)
@@ -195,6 +208,12 @@ func TestCreateNfDeploymentStatusDeploymentProcessing(t *testing.T) {
 	}
 	if !b {
 		t.Errorf("createNfDeploymentStatus(%v, %v) returned %v, want %v", deployment, nfDeployment, b, true)
+	}
+}
+
+func clearTransitionTimes(status *nephiov1alpha1.NFDeploymentStatus) {
+	for i := range status.Conditions {
+		status.Conditions[i].LastTransitionTime = metav1.Time{}
 	}
 }
 
