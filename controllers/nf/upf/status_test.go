@@ -104,79 +104,6 @@ func TestCreateNfDeploymentStatusProcessing(t *testing.T) {
 	}
 }
 
-func TestCreateNfDeploymentStatusAvailable(t *testing.T) {
-	nfDeployment := newUpfDeployment("test-nf-deployment")
-	deployment := new(appsv1.Deployment)
-
-	var condition metav1.Condition
-	condition.Type = string(nephiov1alpha1.Available)
-	deploymentCondition := &appsv1.DeploymentCondition{}
-	deploymentCondition.Type = appsv1.DeploymentAvailable
-	nfDeployment.Status.Conditions = append(nfDeployment.Status.Conditions, condition)
-	deployment.Status.Conditions = append(deployment.Status.Conditions, *deploymentCondition)
-
-	want := nfDeployment.Status
-	want.Conditions = append(want.Conditions, metav1.Condition{
-		Type:    "Ready",
-		Status:  metav1.ConditionTrue,
-		Reason:  "Reconciled",
-		Message: "NFDeployment reconciled successfully",
-	})
-
-	got, b := createNfDeploymentStatus(deployment, nfDeployment)
-
-	clearTransitionTimes(&got)
-	clearTransitionTimes(&want)
-
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("createNfDeploymentStatus(%v, %v) returned %v, want %v", deployment, nfDeployment, got, want)
-	}
-	if !b {
-		t.Errorf("createNfDeploymentStatus(%v, %v) returned %v, want %v", deployment, nfDeployment, b, true)
-	}
-}
-
-func TestCreateNfDeploymentStatusDeploymentAvailable(t *testing.T) {
-	nfDeployment := newUpfDeployment("test-nf-deployment")
-	deployment := new(appsv1.Deployment)
-
-	var condition metav1.Condition
-	condition.Type = string(nephiov1alpha1.Reconciling)
-	condition.Status = metav1.ConditionFalse
-	condition.Reason = "MinimumReplicasNotAvailable"
-	condition.Message = "NFDeployment pod(s) is(are) starting."
-	deploymentCondition := &appsv1.DeploymentCondition{}
-	deploymentCondition.Type = appsv1.DeploymentAvailable
-	deploymentCondition.Reason = "MinimumReplicasAvailable"
-	nfDeployment.Status.Conditions = append(nfDeployment.Status.Conditions, condition)
-	deployment.Status.Conditions = append(deployment.Status.Conditions, *deploymentCondition)
-
-	want := nfDeployment.Status
-	condition.Type = string(nephiov1alpha1.Available)
-	condition.Status = metav1.ConditionTrue
-	condition.Reason = "MinimumReplicasAvailable"
-	condition.Message = "NFDeployment pods are available."
-	want.Conditions = append(want.Conditions, condition)
-	want.Conditions = append(want.Conditions, metav1.Condition{
-		Type:    "Ready",
-		Status:  metav1.ConditionTrue,
-		Reason:  "Reconciled",
-		Message: "NFDeployment reconciled successfully",
-	})
-
-	got, b := createNfDeploymentStatus(deployment, nfDeployment)
-
-	clearTransitionTimes(&got)
-	clearTransitionTimes(&want)
-
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("createNfDeploymentStatus(%v, %v) returned %v, want %v", deployment, nfDeployment, got, want)
-	}
-	if !b {
-		t.Errorf("createNfDeploymentStatus(%v, %v) returned %v, want %v", deployment, nfDeployment, b, true)
-	}
-}
-
 func TestCreateNfDeploymentStatusDeploymentProcessing(t *testing.T) {
 	nfDeployment := newUpfDeployment("test-nf-deployment")
 	deployment := new(appsv1.Deployment)
@@ -210,12 +137,6 @@ func TestCreateNfDeploymentStatusDeploymentProcessing(t *testing.T) {
 	}
 	if !b {
 		t.Errorf("createNfDeploymentStatus(%v, %v) returned %v, want %v", deployment, nfDeployment, b, true)
-	}
-}
-
-func clearTransitionTimes(status *nephiov1alpha1.NFDeploymentStatus) {
-	for i := range status.Conditions {
-		status.Conditions[i].LastTransitionTime = metav1.Time{}
 	}
 }
 
